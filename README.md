@@ -55,7 +55,7 @@ Activate the environment:
 ### **3. Install Dependencies**
 
 ```bash
-pip install openai chainlit python-dotenv
+uv add openai-agents chainlit python-dotenv
 ```
 
 ---
@@ -84,7 +84,29 @@ BASE_URL="https://generativelanguage.googleapis.com/v1beta/openai/"
 
 ---
 
-## **Roadmap**
+# Agent SDK Topics Table
+
+| **Category**               | **Topics** |
+|-----------------------------|------------|
+| **Agent System**            | Agent, AgentHooks, AgentOutputSchema, AgentOutputSchemaBase |
+| **Runner and Execution**    | Runner, run, run_sync, run_streamed, RunConfig, RunHooks, RunResult, RunResultStreaming, RunContextWrapper, RunErrorDetails, Tools |
+| **Tool Types**              | Tool, function_tool, FunctionTool, FunctionToolResult, WebSearchTool, FileSearchTool, ComputerTool, CodeInterpreterTool, ImageGenerationTool, LocalShellTool, LocalShellCommandRequest, LocalShellExecutor, HostedMCPTool |
+| **Handoffs**                | handoff, Handoff, HandoffInputData, HandoffInputFilter |
+| **Input Guardrails**        | input_guardrail, InputGuardrail, InputGuardrailResult, InputGuardrailTripwireTriggered |
+| **Output Guardrails**       | output_guardrail, OutputGuardrail, OutputGuardrailResult, OutputGuardrailTripwireTriggered, GuardrailFunctionOutput |
+| **Models and Providers**    | Model, ModelProvider, ModelTracing, ModelSettings, OpenAIChatCompletionsModel, OpenAIResponsesModel, OpenAIProvider |
+| **Streaming and Events**    | StreamEvent, RunItemStreamEvent, AgentUpdatedStreamEvent, RawResponsesStreamEvent |
+| **Items and Data Structures** | TResponseInputItem, MessageOutputItem, ModelResponse, RunItem, HandoffCallItem, HandoffOutputItem, ToolCallItem, ToolCallOutputItem, ReasoningItem, ItemHelpers |
+| **Tracing and Observability - Core Tracing** | trace, Trace, TracingProcessor, add_trace_processor, set_trace_processors, set_tracing_disabled |
+| **Tracing and Observability - Spans** | Span, SpanData, SpanError, agent_span, custom_span, function_span, generation_span, guardrail_span, handoff_span |
+| **Tracing and Observability - Span Data Types** | AgentSpanData, CustomSpanData, FunctionSpanData, GenerationSpanData, GuardrailSpanData, HandoffSpanData |
+| **Computer Use**            | Computer, AsyncComputer, Environment, Button |
+| **Exceptions**              | AgentsException, MaxTurnsExceeded, ModelBehaviorError, UserError |
+
+
+
+
+
 
 | Module | Topic                    | Description                     |
 | ------ | ------------------------ | ------------------------------- |
