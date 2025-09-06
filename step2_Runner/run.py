@@ -58,7 +58,7 @@ async def main():
             run_config=run_config
         )
 
-        print(result.final_output)
+        print(result) 
 
     except Exception as e:
         print(f"Error: {str(e)}")
