@@ -79,7 +79,9 @@ class EntityOutput(BaseModel):
     name: str
     role: str
 
-schema = AgentOutputSchema(EntityOutput, strict_json_schema=True)
+
+schema = AgentOutputSchema(EntityOutput)
+print(schema.json_schema())  # tumhe pydantic style JSON schema milega
 
 # schema = AgentOutputSchema(output_type=EntityRelation)
 
@@ -90,7 +92,7 @@ agent = Agent(
     name="name entity relations",
     instructions="Extract person name and their role from the text.",
     hooks=CustomAgentHooks(),
-    output_type=schema,
+    output_type=EntityOutput,
 )
 
 

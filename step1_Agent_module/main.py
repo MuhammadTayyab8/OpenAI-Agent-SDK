@@ -6,7 +6,8 @@ from agents import (
     OpenAIChatCompletionsModel,
     RunConfig,
     Runner,
-    AgentHooks
+    AgentHooks,
+    ModelSettings
 )
 
 import asyncio
@@ -60,6 +61,15 @@ class CustomAgentHooks(AgentHooks):
     
     async def on_llm_end(self, context, agent, response):
         print( f"- LLM End with {agent.name}")
+    
+    async def on_handoff(self, context, agent, source):
+        print(f"HandsOff {agent.name}")
+
+    async def on_tool_start(self, context, agent, tool):
+        print(f"Agent {agent.name} Start tool: {tool}")
+
+    async def on_tool_end(self, context, agent, tool, result):
+        print(f"Agent {agent.name} End tool: {tool} and produce output: {result}")
 
 
 
@@ -68,7 +78,11 @@ class CustomAgentHooks(AgentHooks):
 agent = Agent(
     name="name entity relations",
     instructions="you are a name entity agent. extract name entity relations from given text.",
-    hooks=CustomAgentHooks()
+    hooks=CustomAgentHooks(),
+    model_settings=ModelSettings(
+        temperature=0.1,  # Very focused
+        max_tokens=500    # Enough for detailed steps
+    )
 )
 
 
