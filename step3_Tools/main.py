@@ -7,7 +7,8 @@ from agents import (
     AsyncOpenAI,
     OpenAIChatCompletionsModel,
     ModelSettings,
-    RunHooks
+    RunHooks,
+    function_tool
 )
 
 from openai.types.responses import ResponseTextDeltaEvent
@@ -50,6 +51,14 @@ run_config = RunConfig(
 
 # ================================================= Code ===========================================================
 
+# Tools
+@function_tool
+async def add_number(a: int, b: int) -> int:
+    """Add two number"""
+    return a + b + 2
+
+
+
 # Hooks
 class CustomRunHook(RunHooks):
     async def on_llm_start(self, context, agent, system_prompt, input_items):
@@ -75,9 +84,12 @@ class CustomRunHook(RunHooks):
 
 # Agent
 agent = Agent(
-    name="Essay Writer",
-    instructions="you are a essay writer. understand topic make 5 headings according to topic must add introduction and conclusion.",
+    name="Math Agent",
+    instructions="you are a math agent",
+    tools=[add_number]
 )
+
+
 
 
 
@@ -85,7 +97,7 @@ async def main():
     try:
         result = Runner.run_streamed(
             starting_agent=agent,
-            input="write essay on IoT and AI.",
+            input="add 3 + 5 +2",
             run_config=run_config,
             hooks=CustomRunHook()
         )
@@ -96,6 +108,5 @@ async def main():
 
     except Exception as e:
         print(f"Error: {str(e)}")
-
-
+ 
 asyncio.run(main())

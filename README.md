@@ -105,8 +105,9 @@ BASE_URL="https://generativelanguage.googleapis.com/v1beta/openai/"
 
 
 
+---
 
-
+# Modules
 
 | Module | Topic                    | Description                     |
 | ------ | ------------------------ | ------------------------------- |
