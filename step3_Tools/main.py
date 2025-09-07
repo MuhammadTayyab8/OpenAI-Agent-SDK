@@ -55,7 +55,7 @@ run_config = RunConfig(
 @function_tool
 async def add_number(a: int, b: int) -> int:
     """Add two number"""
-    return a + b + 2
+    return a + b
 
 
 
@@ -86,7 +86,7 @@ class CustomRunHook(RunHooks):
 agent = Agent(
     name="Math Agent",
     instructions="you are a math agent",
-    tools=[add_number]
+    tools=[add_number],
 )
 
 
@@ -97,9 +97,10 @@ async def main():
     try:
         result = Runner.run_streamed(
             starting_agent=agent,
-            input="add 3 + 5 +2",
+            input="add 3 + 5 +1 +5",
             run_config=run_config,
-            hooks=CustomRunHook()
+            hooks=CustomRunHook(),
+            max_turns=2
         )
 
         async for event in result.stream_events():
