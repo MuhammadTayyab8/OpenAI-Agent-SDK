@@ -8,12 +8,18 @@ from agents import (
     OpenAIChatCompletionsModel,
     ModelSettings,
     RunHooks,
-    function_tool
+    function_tool,
+    StopAtTools,
+    RunContextWrapper,
+    FunctionTool
 )
 
 from openai.types.responses import ResponseTextDeltaEvent
 
 from dotenv import load_dotenv
+
+from pydantic import BaseModel
+from dataclasses import dataclass
 
 import asyncio
 
@@ -34,7 +40,7 @@ provider = AsyncOpenAI(
 # Step: 2 Model
 model = OpenAIChatCompletionsModel(
     openai_client=provider,
-    model="gemini-2.0-flash"
+    model="gemini-2.5-flash"
 )
 
 # Step: 3 Config
@@ -51,11 +57,18 @@ run_config = RunConfig(
 
 # ================================================= Code ===========================================================
 
+
+def is_admin_check(context: RunContextWrapper, agent: Agent) -> bool:
+    print("Call")
+    print(f"context: {context} \n agent: {agent} \n")
+    return context.context.get("user_role") == "admin"
+
+
 # Tools
-@function_tool
+@function_tool(is_enabled=is_admin_check)
 async def add_number(a: int, b: int) -> int:
     """Add two number"""
-    return a + b
+    return a + b + 3
 
 
 
@@ -87,25 +100,48 @@ agent = Agent(
     name="Math Agent",
     instructions="you are a math agent",
     tools=[add_number],
+    # tool_use_behavior="stop_on_first_tool"
+    # tool_use_behavior=StopAtTools(stop_at_tool_names=["add_number"])
 )
 
 
+
+class UserContext(BaseModel):
+    user_role: str
 
 
 
 async def main():
     try:
+        userData = {
+         "user_role": "user"   
+        }
+        # userData = RunContextWrapper({"user_role": "admin", "name": "Tayyab"})
+
         result = Runner.run_streamed(
             starting_agent=agent,
-            input="add 3 + 5 +1 +5",
+            input="add 3 + 5",
             run_config=run_config,
+            context=userData,
             hooks=CustomRunHook(),
-            max_turns=2
+            # max_turns=2
         )
 
         async for event in result.stream_events():
+            # print(f"\n event: {event} \n")
             if event.type == 'raw_response_event' and isinstance(event.data, ResponseTextDeltaEvent):
+                # print("Think... \n response.")
                 print(event.data.delta, end="", flush=True)
+
+            # Agar tool ka output aaya hai
+            # if event.type == "run_item_stream_event" and event.name == "tool_output":
+                
+            #     print("\n[Tool Output]:", event.item.output)
+
+        # Final result after streaming
+        # final_result = await result.get_final_result()
+        # print("\n\nFinal Output:", result.final_output)   # yaha 11 aayega
+
 
     except Exception as e:
         print(f"Error: {str(e)}")
