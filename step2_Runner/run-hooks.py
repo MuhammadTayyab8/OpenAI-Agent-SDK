@@ -65,10 +65,13 @@ class CustomRunHook(RunHooks):
         print(f"Agent End: {agent.name}")
 
     async def on_tool_start(self, context, agent, tool):
-        print(f"Tool start: {tool}")
+        print(f"Tool start: {tool.name}")
 
     async def on_tool_end(self, context, agent, tool, result):
-        print(f"Tool end: {tool} with result: {result}")
+        print(f"Tool end: {tool.name} with result: {result}")
+
+    async def on_handoff(self, context, from_agent, to_agent):
+        print(f"Handsoff from {from_agent.name} to: {to_agent.name}")
 
 
 
