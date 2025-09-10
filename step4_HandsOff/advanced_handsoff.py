@@ -13,10 +13,12 @@ from agents import (
     RunContextWrapper,
     FunctionTool,
     handoff,
-    handoff_filters
 )
 
 from openai.types.responses import ResponseTextDeltaEvent
+
+from agents.extensions import handoff_filters
+
 
 from dotenv import load_dotenv
 
