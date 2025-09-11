@@ -6,19 +6,19 @@ from agents import (
     RunConfig,
     AsyncOpenAI,
     OpenAIChatCompletionsModel,
-    ModelSettings,
     RunHooks,
     function_tool,
-    StopAtTools,
     RunContextWrapper,
-    FunctionTool,
     handoff,
+    GuardrailFunctionOutput,
+    InputGuardrailTripwireTriggered,
+    TResponseInputItem,
+    input_guardrail,
 )
 
 from openai.types.responses import ResponseTextDeltaEvent
 
 from agents.extensions import handoff_filters
-
 
 from dotenv import load_dotenv
 
@@ -60,21 +60,6 @@ run_config = RunConfig(
 
 
 # ================================================= Code ===========================================================
-
-
-def is_admin_check(context: RunContextWrapper, agent: Agent) -> bool:
-    print("Call")
-    print(f"context: {context} \n agent: {agent} \n")
-    return context.context.get("user_role") == "admin"
-
-
-# Tools
-@function_tool(is_enabled=is_admin_check)
-async def add_number(a: int, b: int) -> int:
-    """Add two number"""
-    return a + b + 3
-
-
 
 @function_tool
 async def accounts_department(invoice_number: str) -> dict:
@@ -125,10 +110,47 @@ class CustomRunHook(RunHooks):
 
 
 
-
+# ======================= handsoff input ======================
 class InputData(BaseModel):
     reason: str
     order_id: str
+
+
+# =========================== Guarduail ============================
+class GuardrailInput(BaseModel):
+    is_related: bool
+    reason: str
+
+
+# ======================= Guardrail Agent Start =============================
+input_guardrail_agent = Agent(
+    name="Input Guardrail",
+    instructions="Check if user question is related to software support, it consultancy, company related question",
+    output_type=GuardrailInput
+)
+
+
+@input_guardrail
+async def input_guardrail_run(ctx: RunContextWrapper, agent: Agent, input: str | list[TResponseInputItem]) -> GuardrailFunctionOutput:
+    print(f"Guard run with {agent.name}")
+    try:
+        result = await Runner.run(
+            starting_agent=input_guardrail_agent,
+            input=input,
+            run_config=run_config,
+            context=ctx.context
+        ) 
+
+        print(result.final_output, "final output")
+
+        return GuardrailFunctionOutput(
+            output_info=result.final_output,
+            tripwire_triggered=result.final_output.is_related
+        )
+
+    except Exception as e:
+        print(f"Error input: {str(e)}")
+
 
 
 
@@ -164,35 +186,6 @@ it_department_agent = Agent(
 
 
 
-
-# ==================== Custom Handoff Account Agent with Logging ====================
-
-accounts_agent = Agent(
-    name="Accounts Agent",
-    instructions="""
-    You are an accounts agent. 
-    Always use the tool `accounts_department` to fetch invoice details 
-    when the user asks about billing, payments, or invoices. 
-    Return the tool output directly.
-    """,
-    tools=[accounts_department],
-    handoffs=[it_department_agent]
-)
-
-
-def log_accounts_handoff(ctx: RunContextWrapper, input_data: InputData) -> str:
-    print(f"[HANDOFF LOG] Transferring to Accounts Agent because {input_data.reason}")
-
-
-accounts_handoff = handoff(
-    agent=accounts_agent,
-    tool_name_override="escalate_to_accounts",
-    tool_description_override="Use this when user asks about billing, invoices, or payments.",
-    input_filter=handoff_filters.remove_all_tools,
-    on_handoff=log_accounts_handoff,
-    input_type=InputData
-)
-
 # ==================== Custom Handoff Account Agent with Logging ====================
 
 
@@ -200,15 +193,14 @@ accounts_handoff = handoff(
 main_agent = Agent(
     name="Main Agent",
     instructions="""
-    you are a main agent your role here is like an manager understand user question and handsoff to 
+    you are a main agent of an software company your role here is like an manager understand user question and handsoff to 
     specilist agent
     - user question is related to accounts, billing, payment must handsoff to `accounts_agent`.
     - user question related to technical issues handsoff to `it_department_agent`.
     - user question related to normal support desk level question then handsoff to `customer_agent`.
-    - if you cannot specify the agent according to question so let the `customer_agent` agent to 
-    entertain customer.
     """,
-    handoffs=[customer_agent_handsoff, it_department_agent, accounts_handoff]
+    handoffs=[customer_agent_handsoff, it_department_agent],
+    input_guardrails=[input_guardrail_run]
 )
 
 
@@ -223,7 +215,7 @@ async def main():
 
         result = Runner.run_streamed(
             starting_agent=main_agent,
-            input="SI-00091 please tell me last month bill amount. after that connect me to it expert as i face problem in POS",
+            input="solve 2x^2+3x+1 = 0",
             run_config=run_config,
             hooks=CustomRunHook(),
             # max_turns=3
@@ -247,5 +239,7 @@ async def main():
 
     except Exception as e:
         print(f"Error: {str(e)}")
+    except InputGuardrailTripwireTriggered:
+        print(f"Fire, Input Triger fire.")
  
 asyncio.run(main())
