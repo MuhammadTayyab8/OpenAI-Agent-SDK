@@ -90,7 +90,7 @@ class CustomRunHook(RunHooks):
 
 # ============= InputGuardrail ============= 
 class InputGuardrail(BaseModel):
-    is_not_related: bool
+    is_related: bool
     reason: str
 
 
@@ -122,11 +122,11 @@ async def guardrail_agent(
         context=ctx.context
     )
 
-    print(result.final_output.is_not_related)
+    print(result.final_output.is_related, "Input")
 
     return GuardrailFunctionOutput(
         output_info=result.final_output,
-        tripwire_triggered=result.final_output.is_not_related
+        tripwire_triggered=result.final_output.is_related
     )
 
 
@@ -154,7 +154,7 @@ async def output_guardrail_run(
         context=ctx.context
     )
 
-    print(result.final_output.is_not_related)
+    print(result.final_output.is_not_related, "Output")
 
     return GuardrailFunctionOutput(
         output_info=result.final_output,
@@ -176,11 +176,16 @@ math_agent = Agent(
 
 
 
+
+
+
+
+
 async def main():
     try:
         # userData = RunContextWrapper({"user_role": "admin", "name": "Tayyab"})
 
-        result = Runner.run_streamed(
+        result = await Runner.run(
             starting_agent=math_agent,
             input="Who won yesterday’s match? The match was between Pakistan and India in cricket.",
             run_config=run_config,
@@ -188,11 +193,13 @@ async def main():
             # max_turns=3
         )
 
-        async for event in result.stream_events():
-            # print(f"\n event: {event} \n")
-            if event.type == 'raw_response_event' and isinstance(event.data, ResponseTextDeltaEvent):
-                # print("Think... \n response.")
-                print(event.data.delta, end="", flush=True)
+        print(result.final_output)
+
+        # async for event in result.stream_events():
+        #     # print(f"\n event: {event} \n")
+        #     if event.type == 'raw_response_event' and isinstance(event.data, ResponseTextDeltaEvent):
+        #         # print("Think... \n response.")
+        #         print(event.data.delta, end="", flush=True)
 
             # Agar tool ka output aaya hai
             # if event.type == "run_item_stream_event" and event.name == "tool_output":
