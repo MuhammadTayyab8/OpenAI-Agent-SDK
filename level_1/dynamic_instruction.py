@@ -9,7 +9,8 @@ from agents import (
     Runner,
     RunHooks,
     RunConfig,
-    RunContextWrapper
+    RunContextWrapper,
+    ModelSettings
 )
 from dotenv import load_dotenv
 
@@ -43,10 +44,17 @@ model = OpenAIChatCompletionsModel(
 )
 
 # ========================= Run Config =====================
+settings = ModelSettings(
+    temperature=1.5,
+    max_output_tokens=500,
+    top_p=0.9,
+)
+
 run_config = RunConfig(
     model_provider=client,
     model=model,
-    tracing_disabled=True
+    tracing_disabled=True,
+    model_settings=settings
 )
 
 
@@ -122,7 +130,7 @@ class UserInfo(BaseModel):
     name: str
     role: str
 
-user_info = UserInfo(name="Tayyab", role="Guest")
+user_info = UserInfo(name="Tayyab", role="customer")
 
 async def main():
     try:
