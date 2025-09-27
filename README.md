@@ -1,5 +1,9 @@
 # **OpenAI Agent SDK Course**
 
+![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python&logoColor=white, "Python")
+![OpenAI Agents SDK](https://img.shields.io/badge/OpenAI-API-green?logo=openai&logoColor=white, "OpenAI Agents SDK")
+
+
 OpenAI Agent SDK is a **Python library** designed for building intelligent agents using OpenAI models.
 This repository contains a **complete step-by-step course** on creating agents, integrating tools, managing memory, and advanced agent workflows.
 

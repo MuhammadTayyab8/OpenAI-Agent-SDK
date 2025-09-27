@@ -59,13 +59,11 @@ run_config = RunConfig(
 
 
 def is_admin_check(context: RunContextWrapper, agent: Agent) -> bool:
-    print("Call")
-    print(f"context: {context} \n agent: {agent} \n")
     return context.context.get("user_role") == "admin"
 
 
 # Tools
-@function_tool(is_enabled=is_admin_check)
+@function_tool(is_enabled=is_admin_check)  # True so continue
 async def add_number(a: int, b: int) -> int:
     """Add two number"""
     return a + b + 3
@@ -87,10 +85,10 @@ class CustomRunHook(RunHooks):
         print(f"Agent End: {agent.name}")
 
     async def on_tool_start(self, context, agent, tool):
-        print(f"Tool start: {tool}")
+        print(f"Tool start: {tool.name}")
 
     async def on_tool_end(self, context, agent, tool, result):
-        print(f"Tool end: {tool} with result: {result}")
+        print(f"Tool end: {tool.name} with result: {result}")
 
 
 
@@ -98,9 +96,9 @@ class CustomRunHook(RunHooks):
 # Agent
 agent = Agent(
     name="Math Agent",
-    instructions="you are a math agent. must fullfil user",
+    instructions="you are a math agent",
     tools=[add_number],
-    # tool_use_behavior="stop_on_first_tool"
+    tool_use_behavior="stop_on_first_tool"
     # tool_use_behavior=StopAtTools(stop_at_tool_names=["add_number"])
 )
 
@@ -114,16 +112,17 @@ class UserContext(BaseModel):
 async def main():
     try:
         userData = {
-         "user_role": "user"   
+         "user_role": "admin"   
         }
         # userData = RunContextWrapper({"user_role": "admin", "name": "Tayyab"})
 
         result = Runner.run_streamed(
             starting_agent=agent,
-            input="add 3 + 5",
+            input="add 4 + 6",
             run_config=run_config,
             context=userData,
             hooks=CustomRunHook(),
+            # max_turns=2
             # max_turns=2
         )
 
